@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scegli la struttura dati</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --text: #1d2330; --muted: #5d6675; --line: #dfe3ea;
+    --accent: #2457c5; --accent-soft: #e8eefb;
+    --ok: #1f8a4c; --ok-soft: #e4f5ea; --mid: #b26a00; --mid-soft: #fff3df; --bad: #c0392b; --bad-soft: #fde8e6;
+    --code-bg: #f0f2f6; --shadow: 0 1px 3px rgba(0,0,0,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14171d; --card: #1e232c; --text: #e8ebf0; --muted: #a0a8b5; --line: #323944;
+      --accent: #7ea2f0; --accent-soft: #24304a;
+      --ok: #5ccb85; --ok-soft: #1d3327; --mid: #e8a94a; --mid-soft: #3a2d18; --bad: #f07b6d; --bad-soft: #3d2320;
+      --code-bg: #141821; --shadow: none;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 24px 16px 60px; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; }
+  h2 { font-size: 1.2rem; margin: 28px 0 10px; }
+  h3 { font-size: 1rem; margin: 18px 0 8px; }
+  p { margin: 8px 0; }
+  .muted { color: var(--muted); }
+  .small { font-size: .9rem; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; box-shadow: var(--shadow); margin: 14px 0; }
+  code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .9em; }
+  pre { background: var(--code-bg); padding: 8px 10px; border-radius: 6px; margin: 8px 0 0; overflow-x: auto; font-size: .85rem; line-height: 1.4; }
+  pre code { background: none; padding: 0; }
+  button { font: inherit; border: 1px solid var(--line); background: var(--card); color: var(--text); padding: 9px 16px; border-radius: 8px; cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  button.primary:disabled { opacity: .5; cursor: default; }
+  button.danger { color: var(--bad); }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .spread { justify-content: space-between; }
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: .78rem; font-weight: 600; border: 1px solid var(--line); color: var(--muted); }
+  .badge.d1 { color: var(--ok); border-color: var(--ok); }
+  .badge.d2 { color: var(--mid); border-color: var(--mid); }
+  .badge.d3 { color: var(--bad); border-color: var(--bad); }
+  .badge.multi { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+  .progress { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; margin: 10px 0 18px; }
+  .progress > div { height: 100%; background: var(--accent); transition: width .3s; }
+  .context { border-left: 4px solid var(--accent); padding: 6px 14px; background: var(--accent-soft); border-radius: 0 8px 8px 0; margin: 12px 0; }
+  .dati { margin: 10px 0 4px; }
+  .dati .fname { font-size: .82rem; color: var(--muted); margin-top: 8px; }
+  .dati .fname code { font-weight: 600; }
+  .dati pre { margin: 3px 0 0; border: 1px solid var(--line); white-space: pre; }
+  .question { font-weight: 600; font-size: 1.08rem; margin: 14px 0 12px; }
+  .option { display: block; border: 2px solid var(--line); border-radius: 10px; padding: 12px 14px; margin: 10px 0; cursor: pointer; background: var(--card); transition: border-color .15s; }
+  .option:hover { border-color: var(--accent); }
+  .option.selected { border-color: var(--accent); background: var(--accent-soft); }
+  .option input { margin-right: 10px; transform: scale(1.15); vertical-align: middle; }
+  .option .label { display: inline; }
+  .option.locked { cursor: default; }
+  .option.r-ottima { border-color: var(--ok); background: var(--ok-soft); }
+  .option.r-accettabile { border-color: var(--mid); background: var(--mid-soft); }
+  .option.r-sbagliata { border-color: var(--bad); background: var(--bad-soft); }
+  .option.r-sbagliata.was-selected, .option.r-ottima.was-missed { outline: 3px solid var(--bad); outline-offset: 2px; }
+  .verdict { font-weight: 700; margin-top: 8px; font-size: .9rem; }
+  .verdict.ottima { color: var(--ok); } .verdict.accettabile { color: var(--mid); } .verdict.sbagliata { color: var(--bad); }
+  .motivo { font-size: .9rem; margin-top: 2px; }
+  .explain { border-left: 4px solid var(--ok); padding: 8px 14px; background: var(--ok-soft); border-radius: 0 8px 8px 0; margin-top: 14px; }
+  .score-big { font-size: 2.6rem; font-weight: 700; line-height: 1; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .stat { background: var(--bg); border-radius: 10px; padding: 12px 14px; }
+  .stat .v { font-size: 1.5rem; font-weight: 700; }
+  .stat .k { font-size: .82rem; color: var(--muted); }
+  table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: .82rem; }
+  td.num, th.num { text-align: right; white-space: nowrap; }
+  .bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; min-width: 90px; }
+  .bar > div { height: 100%; background: var(--accent); }
+  .legend span { display: inline-block; margin-right: 14px; font-size: .85rem; }
+  .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+  svg text { fill: var(--muted); font-size: 11px; }
+  .pts { font-weight: 700; }
+  .pts.full { color: var(--ok); } .pts.part { color: var(--mid); } .pts.zero { color: var(--bad); }
+  details summary { cursor: pointer; color: var(--accent); }
+  .review-item { border-top: 1px solid var(--line); padding: 10px 0; }
+  @media (max-width: 600px) { .card { padding: 14px; } h1 { font-size: 1.35rem; } }
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script src="pool.js"></script>
+<script>
+(function () {
+  'use strict';
+  const POOL = window.POOL || [];
+  const KEY_SESS = 'sdq_sessions_v1';
+  const KEY_SEEN = 'sdq_seen_v1';
+  const KEY_OPT = 'sdq_options_v1';
+  const COMPOSITION = { 1: 3, 2: 4, 3: 3 };         // 10 domande: 3 facili, 4 medie, 3 difficili
+  const DIFF = { 1: 'Facile', 2: 'Media', 3: 'Difficile' };
+  const RLABEL = { ottima: 'Ottima', accettabile: 'Accettabile', sbagliata: 'Sbagliata' };
+  const RSYM = { ottima: '✔', accettabile: '~', sbagliata: '✘' };
+  const app = document.getElementById('app');
+
+  // ---------- storage ----------
+  function load(key, fallback) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; } }
+  function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) { /* storage non disponibile */ } }
+  const sessions = () => load(KEY_SESS, []);
+  const seen = () => load(KEY_SEEN, {});
+  const options = () => Object.assign({ feedbackImmediato: true }, load(KEY_OPT, {}));
+
+  // ---------- utils ----------
+  function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+  function md(s) { return esc(s).replace(/`([^`]+)`/g, '<code>$1</code>'); }
+  function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+  function fmtDate(iso) { const d = new Date(iso); return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: '2-digit' }) + ' ' + d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }); }
+  function pct(x) { return Math.round(x * 100) + '%'; }
+  function datiHtml(q) {
+    if (!q.dati || !q.dati.length) return '';
+    return '<div class="dati">' + q.dati.map(f => `<div class="fname">Esempio di <code>${esc(f.file)}</code></div><pre><code>${esc(f.righe.join('\n'))}</code></pre>`).join('') + '</div>';
+  }
+  function exerciseOf(q) { return q.id.split('/').slice(0, 2).join('/'); }
+
+  // ---------- selezione domande ----------
+  function pickQuestions() {
+    const sn = seen();
+    const usedEx = new Set();
+    const chosen = [];
+    for (const d of [1, 2, 3]) {
+      let cands = POOL.filter(q => q.difficolta === d);
+      // preferisci le domande viste meno volte; a parità, ordine casuale
+      cands = shuffle(cands).sort((a, b) => (sn[a.id] || 0) - (sn[b.id] || 0));
+      let n = COMPOSITION[d];
+      for (const q of cands) {
+        if (n === 0) break;
+        if (usedEx.has(exerciseOf(q))) continue;       // evita due domande sullo stesso tema
+        chosen.push(q); usedEx.add(exerciseOf(q)); n--;
+      }
+      for (const q of cands) {                           // se non bastano, rilassa il vincolo
+        if (n === 0) break;
+        if (chosen.includes(q)) continue;
+        chosen.push(q); n--;
+      }
+    }
+    return shuffle(chosen).map(q => ({ q, order: shuffle([0, 1, 2, 3]) }));
+  }
+
+  // ---------- punteggio ----------
+  // singola:  ottima = 1, accettabile = 0.5, sbagliata = 0
+  // multipla: (ottime selezionate - sbagliate selezionate) / numero di ottime, minimo 0
+  function scoreAnswer(q, selected) {
+    const sel = new Set(selected);
+    if (q.tipo === 'singola') {
+      const i = selected[0];
+      if (i === undefined) return 0;
+      return { ottima: 1, accettabile: 0.5, sbagliata: 0 }[q.opzioni[i].valutazione];
+    }
+    let k = 0, good = 0, bad = 0;
+    q.opzioni.forEach((o, i) => {
+      if (o.valutazione === 'ottima') { k++; if (sel.has(i)) good++; }
+      if (o.valutazione === 'sbagliata' && sel.has(i)) bad++;
+    });
+    return Math.max(0, (good - bad) / k);
+  }
+
+  // ---------- stato ----------
+  let state = null; // { items: [{q, order, selected, score, answered}], idx, opts }
+
+  function startQuiz() {
+    state = { items: pickQuestions().map(it => Object.assign(it, { selected: [], score: null })), idx: 0, opts: options(), started: new Date().toISOString() };
+    renderQuestion();
+  }
+
+  // ---------- rendering ----------
+  function renderHome() {
+    state = null;
+    const S = sessions();
+    const o = options();
+    const nD = { 1: 0, 2: 0, 3: 0 }; POOL.forEach(q => nD[q.difficolta]++);
+    let html = `
+      <h1>Scegli la struttura dati</h1>
+      <p class="muted">Per ogni tema d'esame devi scegliere la struttura dati Python più adatta. Non devi scrivere codice: devi ragionare su come organizzare i dati.</p>
+      <div class="card">
+        <div class="row spread">
+          <div>
+            <strong>Nuovo test: 10 domande</strong><br>
+            <span class="small muted">3 facili · 4 medie · 3 difficili, estratte da un pool di ${POOL.length} domande (${nD[1]} facili, ${nD[2]} medie, ${nD[3]} difficili). Le domande già viste vengono riproposte meno spesso.</span>
+          </div>
+          <button class="primary" id="btn-start">Inizia il test</button>
+        </div>
+        <p class="small" style="margin-top:12px"><label><input type="checkbox" id="opt-fb" ${o.feedbackImmediato ? 'checked' : ''}> Mostra spiegazione e valutazione subito dopo ogni risposta</label></p>
+        <p class="small muted">Ogni opzione è valutata come <strong style="color:var(--ok)">ottima</strong>, <strong style="color:var(--mid)">accettabile</strong> (funziona, ma è meno comoda) o <strong style="color:var(--bad)">sbagliata</strong>. Nelle domande a risposta singola un'opzione accettabile vale mezzo punto. Nelle domande a risposta multipla devi selezionare tutte le opzioni ottime: le sbagliate selezionate tolgono punti, le accettabili non contano.</p>
+      </div>`;
+    html += renderHistory(S);
+    app.innerHTML = html;
+    document.getElementById('btn-start').onclick = startQuiz;
+    document.getElementById('opt-fb').onchange = e => save(KEY_OPT, Object.assign(options(), { feedbackImmediato: e.target.checked }));
+    const r = document.getElementById('btn-reset'); if (r) r.onclick = () => { if (confirm('Cancellare tutto lo storico dei test su questo browser?')) { localStorage.removeItem(KEY_SESS); localStorage.removeItem(KEY_SEEN); renderHome(); } };
+    const ex = document.getElementById('btn-export'); if (ex) ex.onclick = exportHistory;
+    const im = document.getElementById('file-import'); if (im) im.onchange = importHistory;
+    window.scrollTo(0, 0);
+  }
+
+  function renderHistory(S) {
+    if (!S.length) return `<div class="card"><h2 style="margin-top:0">I tuoi progressi</h2><p class="muted">Nessun test ancora svolto. I risultati vengono salvati in questo browser (localStorage), così puoi vedere come migliori nel tempo.</p></div>`;
+    const last = S[S.length - 1];
+    const best = Math.max(...S.map(s => s.score));
+    const avg = S.reduce((a, s) => a + s.score, 0) / S.length;
+    const prev = S.length > 1 ? S[S.length - 2].score : null;
+    const delta = prev === null ? '' : (last.score - prev >= 0 ? `<span style="color:var(--ok)">▲ +${Math.round((last.score - prev) * 10)}%</span>` : `<span style="color:var(--bad)">▼ ${Math.round((last.score - prev) * 10)}%</span>`) + ' <span class="small muted">rispetto al test precedente</span>';
+
+    let html = `<div class="card"><h2 style="margin-top:0">I tuoi progressi</h2>
+      <div class="stats">
+        <div class="stat"><div class="v">${S.length}</div><div class="k">test svolti</div></div>
+        <div class="stat"><div class="v">${pct(last.score / 10)}</div><div class="k">ultimo test</div></div>
+        <div class="stat"><div class="v">${pct(best / 10)}</div><div class="k">miglior risultato</div></div>
+        <div class="stat"><div class="v">${pct(avg / 10)}</div><div class="k">media</div></div>
+      </div>
+      ${delta ? `<p>${delta}</p>` : ''}
+      ${S.length > 1 ? renderChart(S) : ''}
+      <h3>Per livello di difficoltà (ultimi 5 test)</h3>
+      ${renderDiffTable(S)}
+      <h3>Strutture su cui sbagli di più</h3>
+      ${renderTagTable(S)}
+      <details><summary>Elenco dei test (${S.length})</summary>
+      <table style="margin-top:8px"><tr><th>Data</th><th class="num">Punti</th><th class="num">Facili</th><th class="num">Medie</th><th class="num">Difficili</th></tr>
+      ${S.slice().reverse().map(s => `<tr><td>${fmtDate(s.date)}</td><td class="num"><strong>${s.score.toFixed(1)}/10</strong></td><td class="num">${s.byDiff[1].got.toFixed(1)}/${s.byDiff[1].max}</td><td class="num">${s.byDiff[2].got.toFixed(1)}/${s.byDiff[2].max}</td><td class="num">${s.byDiff[3].got.toFixed(1)}/${s.byDiff[3].max}</td></tr>`).join('')}
+      </table></details>
+      <div class="row" style="margin-top:14px">
+        <button id="btn-export">Esporta storico (JSON)</button>
+        <label><button onclick="this.nextElementSibling.click()">Importa storico</button><input type="file" id="file-import" accept="application/json" style="display:none"></label>
+        <button class="danger" id="btn-reset">Azzera storico</button>
+      </div>
+    </div>`;
+    return html;
+  }
+
+  function renderChart(S) {
+    const W = 760, H = 220, pl = 40, pr = 14, pt = 14, pb = 30;
+    const n = S.length;
+    const x = i => pl + (n === 1 ? 0 : i * (W - pl - pr) / (n - 1));
+    const y = v => pt + (1 - v / 10) * (H - pt - pb);
+    const pts = S.map((s, i) => `${x(i).toFixed(1)},${y(s.score).toFixed(1)}`).join(' ');
+    // media mobile su 3 test
+    const ma = S.map((s, i) => { const w = S.slice(Math.max(0, i - 2), i + 1); return w.reduce((a, b) => a + b.score, 0) / w.length; });
+    const mpts = ma.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+    let grid = '';
+    for (const v of [0, 2.5, 5, 7.5, 10]) grid += `<line x1="${pl}" x2="${W - pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-dasharray="3 3"/><text x="${pl - 6}" y="${y(v) + 4}" text-anchor="end">${v * 10}%</text>`;
+    const step = Math.max(1, Math.ceil(n / 12));
+    let xl = '';
+    S.forEach((s, i) => { if (i % step === 0 || i === n - 1) xl += `<text x="${x(i)}" y="${H - 8}" text-anchor="middle">${i + 1}</text>`; });
+    const dots = S.map((s, i) => `<circle cx="${x(i)}" cy="${y(s.score)}" r="4" fill="var(--accent)"><title>Test ${i + 1} · ${fmtDate(s.date)} · ${s.score.toFixed(1)}/10</title></circle>`).join('');
+    return `<h3>Andamento</h3><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px;display:block" role="img" aria-label="Andamento del punteggio nei test">
+      ${grid}${xl}
+      <polyline points="${mpts}" fill="none" stroke="var(--mid)" stroke-width="2" stroke-dasharray="6 4"/>
+      <polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+      ${dots}</svg>
+      <div class="legend"><span><span class="dot" style="background:var(--accent)"></span>punteggio del test</span><span><span class="dot" style="background:var(--mid)"></span>media degli ultimi 3 test</span><span class="muted">asse x: numero del test</span></div>`;
+  }
+
+  function renderDiffTable(S) {
+    const recent = S.slice(-5);
+    const rows = [1, 2, 3].map(d => {
+      let got = 0, max = 0;
+      recent.forEach(s => { got += s.byDiff[d].got; max += s.byDiff[d].max; });
+      const r = max ? got / max : 0;
+      return `<tr><td><span class="badge d${d}">${DIFF[d]}</span></td><td class="num">${got.toFixed(1)} / ${max}</td><td><div class="bar"><div style="width:${r * 100}%"></div></div></td><td class="num">${pct(r)}</td></tr>`;
+    }).join('');
+    return `<table>${rows}</table>`;
+  }
+
+  function renderTagTable(S) {
+    const agg = {};
+    S.forEach(s => (s.answers || []).forEach(a => { const t = a.tag; if (!t) return; agg[t] = agg[t] || { got: 0, max: 0 }; agg[t].got += a.score; agg[t].max += 1; }));
+    const rows = Object.entries(agg).filter(([, v]) => v.max >= 2).map(([t, v]) => ({ t, r: v.got / v.max, n: v.max })).sort((a, b) => a.r - b.r).slice(0, 8);
+    if (!rows.length) return `<p class="muted small">Servono almeno due domande sulla stessa struttura per mostrare questa statistica.</p>`;
+    return `<table><tr><th>Struttura (tag della risposta ottima)</th><th>Precisione</th><th class="num"></th><th class="num">Domande</th></tr>${rows.map(r => `<tr><td>${esc(r.t)}</td><td><div class="bar"><div style="width:${r.r * 100}%;background:${r.r < .5 ? 'var(--bad)' : r.r < .8 ? 'var(--mid)' : 'var(--ok)'}"></div></div></td><td class="num">${pct(r.r)}</td><td class="num">${r.n}</td></tr>`).join('')}</table>`;
+  }
+
+  function renderQuestion() {
+    const it = state.items[state.idx];
+    const q = it.q;
+    const multi = q.tipo === 'multipla';
+    const answered = it.score !== null;
+    let html = `
+      <div class="row spread small muted"><span>Domanda ${state.idx + 1} di ${state.items.length}</span><button id="btn-abort" class="small">Abbandona il test</button></div>
+      <div class="progress"><div style="width:${(state.idx / state.items.length) * 100}%"></div></div>
+      <div class="card">
+        <div class="row"><span class="badge d${q.difficolta}">${DIFF[q.difficolta]}</span>${multi ? '<span class="badge multi">Risposta multipla: seleziona tutte le opzioni adeguate</span>' : '<span class="badge">Risposta singola</span>'}<span class="badge">${esc(q.fonte)}</span></div>
+        <div class="context">${md(q.contesto)}</div>${datiHtml(q)}
+        <div class="question">${md(q.domanda)}</div>
+        <div id="options">`;
+    for (const i of it.order) {
+      const o = q.opzioni[i];
+      const sel = it.selected.includes(i);
+      let cls = 'option' + (sel ? ' selected' : '');
+      let verdict = '';
+      if (answered) {
+        cls = 'option locked r-' + o.valutazione + (sel && o.valutazione === 'sbagliata' ? ' was-selected' : '') + (!sel && o.valutazione === 'ottima' && multi ? ' was-missed' : '');
+        verdict = `<div class="verdict ${o.valutazione}">${RSYM[o.valutazione]} ${RLABEL[o.valutazione]}${sel ? ' · la tua scelta' : ''}</div><div class="motivo">${md(o.motivo)}</div>`;
+      }
+      html += `<label class="${cls}" data-i="${i}"><input type="${multi ? 'checkbox' : 'radio'}" name="opt" value="${i}" ${sel ? 'checked' : ''} ${answered ? 'disabled' : ''}><span class="label">${md(o.testo)}</span>${o.esempio ? `<pre><code>${esc(o.esempio)}</code></pre>` : ''}${verdict}</label>`;
+    }
+    html += `</div>`;
+    if (answered) {
+      const cls = it.score === 1 ? 'full' : it.score > 0 ? 'part' : 'zero';
+      html += `<div class="explain"><strong>Spiegazione</strong> · <span class="pts ${cls}">${it.score === 1 ? 'Risposta ottima' : it.score > 0 ? 'Risposta parziale' : 'Risposta sbagliata'} (${it.score.toFixed(1)} punti)</span><br>${md(q.spiegazione)}</div>
+        <div class="row" style="margin-top:16px;justify-content:flex-end"><button class="primary" id="btn-next">${state.idx + 1 < state.items.length ? 'Prossima domanda →' : 'Vedi il risultato'}</button></div>`;
+    } else {
+      html += `<div class="row" style="margin-top:16px;justify-content:flex-end"><button class="primary" id="btn-confirm" ${it.selected.length ? '' : 'disabled'}>Conferma</button></div>`;
+    }
+    html += `</div>`;
+    app.innerHTML = html;
+    document.getElementById('btn-abort').onclick = () => { if (confirm('Abbandonare il test? Il risultato non verrà salvato.')) renderHome(); };
+    if (!answered) {
+      app.querySelectorAll('.option input').forEach(inp => inp.onchange = () => {
+        const i = Number(inp.value);
+        if (multi) { it.selected = inp.checked ? it.selected.concat(i) : it.selected.filter(x => x !== i); }
+        else it.selected = [i];
+        app.querySelectorAll('.option').forEach(l => l.classList.toggle('selected', it.selected.includes(Number(l.dataset.i))));
+        document.getElementById('btn-confirm').disabled = it.selected.length === 0;
+      });
+      document.getElementById('btn-confirm').onclick = () => {
+        it.score = scoreAnswer(q, it.selected);
+        if (state.opts.feedbackImmediato) renderQuestion(); else next();
+      };
+    } else {
+      document.getElementById('btn-next').onclick = next;
+    }
+    window.scrollTo(0, 0);
+  }
+
+  function next() {
+    state.idx++;
+    if (state.idx < state.items.length) renderQuestion(); else finish();
+  }
+
+  function finish() {
+    const byDiff = { 1: { got: 0, max: 0 }, 2: { got: 0, max: 0 }, 3: { got: 0, max: 0 } };
+    const answers = state.items.map(it => {
+      byDiff[it.q.difficolta].got += it.score; byDiff[it.q.difficolta].max += 1;
+      return { id: it.q.id, tag: (it.q.tag || [])[0] || null, score: it.score, selected: it.selected, diff: it.q.difficolta };
+    });
+    const score = answers.reduce((a, x) => a + x.score, 0);
+    const sess = { date: new Date().toISOString(), score, byDiff, answers };
+    const S = sessions(); S.push(sess); save(KEY_SESS, S);
+    const sn = seen(); answers.forEach(a => sn[a.id] = (sn[a.id] || 0) + 1); save(KEY_SEEN, sn);
+    renderResult(sess, S);
+  }
+
+  function renderResult(sess, S) {
+    const prev = S.length > 1 ? S[S.length - 2] : null;
+    const cmp = prev ? (sess.score - prev.score >= 0 ? `<span style="color:var(--ok)">▲ +${(sess.score - prev.score).toFixed(1)}</span>` : `<span style="color:var(--bad)">▼ ${(sess.score - prev.score).toFixed(1)}</span>`) + ` punti rispetto al test precedente (${prev.score.toFixed(1)}/10)` : 'Primo test: da ora in poi potrai confrontare i risultati.';
+    let html = `<h1>Risultato</h1>
+      <div class="card">
+        <div class="row" style="gap:24px"><div class="score-big">${sess.score.toFixed(1)}<span class="muted" style="font-size:1.2rem">/10</span></div><div><div style="font-size:1.2rem;font-weight:600">${pct(sess.score / 10)}</div><div class="small">${cmp}</div></div></div>
+        <table style="margin-top:14px">${[1, 2, 3].map(d => `<tr><td><span class="badge d${d}">${DIFF[d]}</span></td><td class="num">${sess.byDiff[d].got.toFixed(1)} / ${sess.byDiff[d].max}</td><td><div class="bar"><div style="width:${(sess.byDiff[d].got / sess.byDiff[d].max) * 100}%"></div></div></td></tr>`).join('')}</table>
+        <div class="row" style="margin-top:16px"><button class="primary" id="btn-again">Nuovo test</button><button id="btn-home">Torna ai progressi</button></div>
+      </div>
+      <div class="card"><h2 style="margin-top:0">Riepilogo delle domande</h2>`;
+    state.items.forEach((it, n) => {
+      const q = it.q;
+      const cls = it.score === 1 ? 'full' : it.score > 0 ? 'part' : 'zero';
+      const best = q.opzioni.filter(o => o.valutazione === 'ottima').map(o => md(o.testo)).join(' <em>oppure</em> ');
+      const chosen = it.selected.map(i => `${RSYM[q.opzioni[i].valutazione]} ${md(q.opzioni[i].testo)}`).join('<br>');
+      html += `<div class="review-item"><div class="row spread"><span><strong>${n + 1}.</strong> ${md(q.domanda)}</span><span class="pts ${cls}">${it.score.toFixed(1)}</span></div>
+        <div class="small"><span class="badge d${q.difficolta}">${DIFF[q.difficolta]}</span> <span class="muted">${esc(q.fonte)}</span></div>
+        <details><summary class="small">Dettagli</summary><div class="small" style="margin-top:6px"><div class="context">${md(q.contesto)}</div>${datiHtml(q)}<p><strong>La tua risposta:</strong><br>${chosen || '<em>nessuna</em>'}</p><p><strong>Ottima:</strong> ${best}</p><p>${md(q.spiegazione)}</p></div></details></div>`;
+    });
+    html += `</div>`;
+    app.innerHTML = html;
+    document.getElementById('btn-again').onclick = startQuiz;
+    document.getElementById('btn-home').onclick = renderHome;
+    window.scrollTo(0, 0);
+  }
+
+  // ---------- import / export ----------
+  function exportHistory() {
+    const blob = new Blob([JSON.stringify({ sessions: sessions(), seen: seen() }, null, 1)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'storico_strutture_dati.json'; a.click();
+  }
+  function importHistory(e) {
+    const f = e.target.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+      try {
+        const d = JSON.parse(r.result);
+        if (!Array.isArray(d.sessions)) throw new Error('formato non valido');
+        const cur = sessions();
+        const dates = new Set(cur.map(s => s.date));
+        d.sessions.forEach(s => { if (!dates.has(s.date)) cur.push(s); });
+        cur.sort((a, b) => a.date.localeCompare(b.date));
+        save(KEY_SESS, cur);
+        if (d.seen) { const sn = seen(); Object.entries(d.seen).forEach(([k, v]) => sn[k] = Math.max(sn[k] || 0, v)); save(KEY_SEEN, sn); }
+        renderHome();
+      } catch (err) { alert('File non valido: ' + err.message); }
+    };
+    r.readAsText(f);
+  }
+
+  if (!POOL.length) app.innerHTML = '<div class="card"><h1>Pool di domande mancante</h1><p>Esegui <code>python3 build.py</code> per generare <code>pool.js</code>.</p></div>';
+  else renderHome();
+})();
+</script>
+</body>
+</html>
